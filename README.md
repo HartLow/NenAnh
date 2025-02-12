@@ -1,5 +1,6 @@
+Công cụ nén ảnh trực tuyến với giao diện đơn giản, cho phép nén nhiều ảnh cùng lúc với chất lượng cao.
 
-Công cụ nén ảnh trực tuyến với giao diện thân thiện, cho phép nén nhiều ảnh cùng lúc với chất lượng cao.
+![image](https://github.com/user-attachments/assets/9177e754-4c4d-4ecc-85d3-59fa8ede412a)
 
 ## Tính Năng Cơ Bản
 
