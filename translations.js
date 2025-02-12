@@ -1,0 +1,42 @@
+const translations = {
+    vi: {
+        title: "Trình Nén Ảnh Online",
+        subtitle: "Nén không giới hạn ảnh với chất lượng ảnh tối ưu",
+        dropText: "Kéo & Thả Ảnh Vào Đây",
+        orText: "hoặc",
+        chooseButton: "Chọn Ảnh",
+        defaultQuality: "Chất Lượng Mặc Định",
+        highQuality: "Chất Lượng Cao",
+        balanced: "Cân Bằng",
+        smallSize: "Dung Lượng Nhỏ",
+        quality: "Chất lượng",
+        preview: "Xem Trước",
+        compressButton: "Nén Ảnh",
+        downloadButton: "Tải Xuống Tất Cả",
+        originalSize: "Kích thước gốc",
+        compressedSize: "Kích thước sau nén",
+        reduced: "Đã giảm",
+        processing: "Đang nén...",
+        error: "Có lỗi xảy ra khi nén ảnh. Vui lòng thử lại."
+    },
+    en: {
+        title: "Online Image Compressor",
+        subtitle: "Compress unlimited images with optimal quality",
+        dropText: "Drop Images Here",
+        orText: "or",
+        chooseButton: "Choose Images",
+        defaultQuality: "Default Quality",
+        highQuality: "High Quality",
+        balanced: "Balanced",
+        smallSize: "Small Size",
+        quality: "Quality",
+        preview: "Preview",
+        compressButton: "Compress",
+        downloadButton: "Download All",
+        originalSize: "Original size",
+        compressedSize: "Compressed size",
+        reduced: "Reduced",
+        processing: "Processing...",
+        error: "Error compressing images. Please try again."
+    }
+};
