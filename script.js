@@ -49,7 +49,6 @@ function initLanguageSystem() {
     document.querySelector('.current-lang').textContent = currentLang.toUpperCase();
     langUtil.updateTexts();
     
-    // Add click handlers for language switching
     document.querySelectorAll('.dropdown-menu [data-lang]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const lang = e.target.dataset.lang;
@@ -57,12 +56,10 @@ function initLanguageSystem() {
             document.documentElement.lang = lang;
             document.querySelector('.current-lang').textContent = lang.toUpperCase();
             
-            // Update active state
             document.querySelectorAll('.dropdown-menu [data-lang]').forEach(el => {
                 el.classList.toggle('active', el.dataset.lang === lang);
             });
             
-            // Update all translations
             updateUILanguage(lang);
         });
     });
@@ -71,38 +68,30 @@ function initLanguageSystem() {
 function updateUILanguage(lang) {
     const t = translations[lang];
     
-    // Update static elements
     langUtil.updateTexts();
     
-    // Update dynamic elements
     document.querySelector('#dropZone h4').textContent = t.dropText;
     document.querySelector('#dropZone p').textContent = t.orText;
     document.querySelector('#dropZone button').innerHTML = `<i class="bi bi-folder"></i> ${t.selectImages}`;
     
-    // Update compression controls
     document.querySelector('.compression-options h5').textContent = t.defaultQuality;
     document.querySelectorAll('.preset-buttons button')[0].textContent = t.highQuality;
     document.querySelectorAll('.preset-buttons button')[1].textContent = t.balanced;
     document.querySelectorAll('.preset-buttons button')[2].textContent = t.smallSize;
     
-    // Update buttons
     compressBtn.innerHTML = `<i class="bi bi-compress"></i> ${t.compress}`;
     downloadBtn.innerHTML = `<i class="bi bi-download"></i> ${t.downloadAll}`;
     
-    // Update preview area if exists
     if (document.querySelector('#previewArea')) {
         document.querySelector('#previewArea h5').textContent = t.previewSection;
         document.querySelector('#clearHistory').textContent = t.clearHistory;
     }
 
-    // Update existing previews
     updateExistingPreviews(t);
 }
 
-// Initialize language system
 initLanguageSystem();
 
-// Update the existing updateExistingPreviews function
 function updateExistingPreviews(t) {
     document.querySelectorAll('.preview-info').forEach(info => {
         const sizeTexts = info.querySelectorAll('div');
@@ -117,12 +106,10 @@ function updateExistingPreviews(t) {
     });
 }
 
-// Update quality value display - remove estimation
 qualityRange.addEventListener('input', (e) => {
     qualityValue.textContent = e.target.value;
 });
 
-// Handle drag and drop events
 dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
     dropZone.classList.add('drag-over');
@@ -149,7 +136,6 @@ async function handleFiles(files) {
     imagePreview.innerHTML = '';
     originalImages = [];
     
-    // Create a queue to process images sequentially
     const processQueue = Array.from(files).filter(file => file.type.startsWith('image/')).map(file => {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -172,7 +158,6 @@ async function handleFiles(files) {
         });
     });
 
-    // Process all images
     await Promise.all(processQueue);
 }
 
@@ -201,7 +186,6 @@ function displayOriginalPreview(imgSrc, fileName, originalSize) {
     
     imagePreview.appendChild(col);
 
-    // Add individual quality slider handler
     const qualitySlider = col.querySelector('.quality-slider');
     const qualityValue = col.querySelector('.quality-value');
     
@@ -210,7 +194,6 @@ function displayOriginalPreview(imgSrc, fileName, originalSize) {
     });
 }
 
-// Update the main compress button to compress all with global quality
 compressBtn.addEventListener('click', async () => {
     if (originalImages.length === 0) return;
     
@@ -249,7 +232,6 @@ compressBtn.addEventListener('click', async () => {
                 img.height
             );
             
-            // Clean up
             img.remove();
             await new Promise(resolve => setTimeout(resolve, 100));
         }
@@ -278,22 +260,18 @@ function generateCompressedPreviewHTML(blobUrl, fileName, originalSize, compress
     `;
 }
 
-// Update compressImage function to accept quality parameter
 async function compressImage(img, fileType, quality) {
     return new Promise((resolve, reject) => {
         try {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
-            // Set dimensions maintaining aspect ratio
             let width = img.naturalWidth || img.width;
             let height = img.naturalHeight || img.height;
             
-            // Max dimensions
             const MAX_WIDTH = 1920;
             const MAX_HEIGHT = 1080;
             
-            // Scale down if needed
             if (width > MAX_WIDTH) {
                 height = Math.round(height * (MAX_WIDTH / width));
                 width = MAX_WIDTH;
@@ -303,21 +281,16 @@ async function compressImage(img, fileType, quality) {
                 height = MAX_HEIGHT;
             }
             
-            // Set canvas dimensions
             canvas.width = width;
             canvas.height = height;
             
-            // Configure image rendering
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
             
-            // Clear canvas
             ctx.clearRect(0, 0, width, height);
             
-            // Draw image
             ctx.drawImage(img, 0, 0, width, height);
             
-            // Convert to blob
             canvas.toBlob(
                 blob => {
                     if (blob) {
@@ -349,7 +322,6 @@ async function getCachedPreview(img, quality) {
         quality: quality
     });
 
-    // Store in recent previews
     addToRecentPreviews({
         url: previewUrl,
         fileName: img.fileName,
@@ -423,15 +395,12 @@ function updateZoom(newZoom, mouseX, mouseY) {
     currentZoom = Math.min(Math.max(newZoom, MIN_ZOOM), MAX_ZOOM);
 
     if (mouseX !== undefined && mouseY !== undefined) {
-        // Save scroll position relative to image
         const boundingRect = container.getBoundingClientRect();
         const scrollXRatio = (mouseX - boundingRect.left + container.scrollLeft) / (modalImage.width * oldZoom);
         const scrollYRatio = (mouseY - boundingRect.top + container.scrollTop) / (modalImage.height * oldZoom);
 
-        // Apply zoom transform
         modalImage.style.transform = `scale(${currentZoom})`;
 
-        // Restore scroll position relative to mouse
         const newScrollX = scrollXRatio * modalImage.width * currentZoom - (mouseX - boundingRect.left);
         const newScrollY = scrollYRatio * modalImage.height * currentZoom - (mouseY - boundingRect.top);
         container.scrollTo(newScrollX, newScrollY);
@@ -456,7 +425,6 @@ zoomReset.addEventListener('click', () => {
     updateZoom(1);
 });
 
-// Add wheel zoom support
 modalImage.addEventListener('wheel', (e) => {
     if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
@@ -489,7 +457,6 @@ function updateImageSizeInfo() {
     imageSizeInfo.textContent = `${width}×${height}px`;
 }
 
-// Add drag functionality
 const container = document.querySelector('.image-zoom-container');
 
 container.addEventListener('mousedown', (e) => {
@@ -521,10 +488,8 @@ function stopDragging() {
     container.style.cursor = currentZoom > 1 ? 'move' : 'zoom-in';
 }
 
-// Add fullscreen button handler
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 
-// Add keyboard shortcuts
 document.addEventListener('keydown', (e) => {
     if (!imageModal._isShown) return;
     
@@ -554,15 +519,12 @@ downloadBtn.addEventListener('click', async () => {
     }
 });
 
-// Add preset button handlers
 document.querySelectorAll('.preset-buttons button').forEach(btn => {
     btn.addEventListener('click', () => {
         const quality = btn.dataset.quality;
-        // Update global quality control
         qualityRange.value = quality;
         qualityValue.textContent = quality;
         
-        // Update all individual sliders
         document.querySelectorAll('.quality-slider').forEach(slider => {
             slider.value = quality;
             slider.parentElement.querySelector('.quality-value').textContent = `${quality}%`;
@@ -586,7 +548,6 @@ clearHistoryBtn.addEventListener('click', () => {
     updateRecentPreviewsUI();
 });
 
-// Initialize UI
 updateRecentPreviewsUI();
 
 document.querySelectorAll('[data-lang]').forEach(element => {
@@ -602,43 +563,34 @@ function updateLanguage(lang) {
     const t = translations[lang];
     document.documentElement.lang = lang;
     
-    // Update main elements
     document.querySelector('h1').textContent = t.title;
     document.querySelector('.subtitle').textContent = t.description;
     
-    // Update upload area
     document.querySelector('#dropZone h4').textContent = t.dropText;
     document.querySelector('#dropZone p').textContent = t.orText;
     document.querySelector('#dropZone button').innerHTML = `<i class="bi bi-folder"></i> ${t.selectImages}`;
     
-    // Update compression options
     document.querySelector('.compression-options h5').textContent = t.defaultQuality;
     document.querySelectorAll('.preset-buttons button')[0].textContent = t.highQuality;
     document.querySelectorAll('.preset-buttons button')[1].textContent = t.balanced;
     document.querySelectorAll('.preset-buttons button')[2].textContent = t.smallSize;
     document.querySelector('.compression-options label.form-label').textContent = t.qualityLabel;
     
-    // Update buttons
     document.querySelector('#compressBtn').innerHTML = `<i class="bi bi-compress"></i> ${t.compress}`;
     document.querySelector('#downloadBtn').innerHTML = `<i class="bi bi-download"></i> ${t.downloadAll}`;
     document.querySelector('#clearHistory').textContent = t.clearHistory;
     
-    // Update preview section
     document.querySelector('#previewArea h5').textContent = t.previewSection;
     
-    // Update language selector
     document.querySelector('#languageDropdown').innerHTML = `<i class="bi bi-globe"></i> ${lang.toUpperCase()}`;
     
-    // Update active language in dropdown
     document.querySelectorAll('[data-lang]').forEach(el => {
         el.classList.toggle('active', el.dataset.lang === lang);
     });
 
-    // Update existing previews if any
     updateExistingPreviews(t);
 }
 
-// Add function to update existing previews
 function updateExistingPreviews(translations) {
     document.querySelectorAll('.preview-info').forEach(info => {
         const sizeTexts = info.querySelectorAll('div');
@@ -657,22 +609,17 @@ function updateExistingPreviews(translations) {
     });
 }
 
-// Initialize language
 updateLanguage(currentLang);
 
-// Update the message strings in compression functions
 function compressIndividualImage(imgSrc, fileName, originalSize, quality, container) {
-    // ...existing code...
     const t = translations[currentLang];
     try {
-        // ...existing code...
     } catch (error) {
         console.error('Error compressing image:', error);
         alert(t.error);
     }
 }
 
-// Cleanup on page unload
 window.addEventListener('unload', () => {
     previewCache.forEach(preview => URL.revokeObjectURL(preview.url));
     recentPreviewsData.forEach(preview => URL.revokeObjectURL(preview.url));
