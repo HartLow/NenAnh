@@ -43,6 +43,80 @@ const MAX_RECENT_PREVIEWS = 8;
 let recentPreviewsData = JSON.parse(localStorage.getItem('recentPreviews') || '[]');
 let favoritePresets = JSON.parse(localStorage.getItem('favoritePresets') || '[]');
 
+function initLanguageSystem() {
+    const currentLang = langUtil.getCurrentLang();
+    document.documentElement.lang = currentLang;
+    document.querySelector('.current-lang').textContent = currentLang.toUpperCase();
+    langUtil.updateTexts();
+    
+    // Add click handlers for language switching
+    document.querySelectorAll('.dropdown-menu [data-lang]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const lang = e.target.dataset.lang;
+            localStorage.setItem('language', lang);
+            document.documentElement.lang = lang;
+            document.querySelector('.current-lang').textContent = lang.toUpperCase();
+            
+            // Update active state
+            document.querySelectorAll('.dropdown-menu [data-lang]').forEach(el => {
+                el.classList.toggle('active', el.dataset.lang === lang);
+            });
+            
+            // Update all translations
+            updateUILanguage(lang);
+        });
+    });
+}
+
+function updateUILanguage(lang) {
+    const t = translations[lang];
+    
+    // Update static elements
+    langUtil.updateTexts();
+    
+    // Update dynamic elements
+    document.querySelector('#dropZone h4').textContent = t.dropText;
+    document.querySelector('#dropZone p').textContent = t.orText;
+    document.querySelector('#dropZone button').innerHTML = `<i class="bi bi-folder"></i> ${t.selectImages}`;
+    
+    // Update compression controls
+    document.querySelector('.compression-options h5').textContent = t.defaultQuality;
+    document.querySelectorAll('.preset-buttons button')[0].textContent = t.highQuality;
+    document.querySelectorAll('.preset-buttons button')[1].textContent = t.balanced;
+    document.querySelectorAll('.preset-buttons button')[2].textContent = t.smallSize;
+    
+    // Update buttons
+    compressBtn.innerHTML = `<i class="bi bi-compress"></i> ${t.compress}`;
+    downloadBtn.innerHTML = `<i class="bi bi-download"></i> ${t.downloadAll}`;
+    
+    // Update preview area if exists
+    if (document.querySelector('#previewArea')) {
+        document.querySelector('#previewArea h5').textContent = t.previewSection;
+        document.querySelector('#clearHistory').textContent = t.clearHistory;
+    }
+
+    // Update existing previews
+    updateExistingPreviews(t);
+}
+
+// Initialize language system
+initLanguageSystem();
+
+// Update the existing updateExistingPreviews function
+function updateExistingPreviews(t) {
+    document.querySelectorAll('.preview-info').forEach(info => {
+        const sizeTexts = info.querySelectorAll('div');
+        if (sizeTexts[1]) {
+            const size = sizeTexts[1].textContent.match(/\d+(\.\d+)?\s*KB/)[0];
+            sizeTexts[1].textContent = `${t.originalSize}: ${size}`;
+        }
+        if (sizeTexts[2]) {
+            const size = sizeTexts[2].textContent.match(/\d+(\.\d+)?\s*KB/)[0];
+            sizeTexts[2].textContent = `${t.compressedSize}: ${size}`;
+        }
+    });
+}
+
 // Update quality value display - remove estimation
 qualityRange.addEventListener('input', (e) => {
     qualityValue.textContent = e.target.value;
@@ -140,6 +214,7 @@ function displayOriginalPreview(imgSrc, fileName, originalSize) {
 compressBtn.addEventListener('click', async () => {
     if (originalImages.length === 0) return;
     
+    const t = translations[currentLang];
     compressBtn.disabled = true;
     compressBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang nén...';
     
@@ -180,7 +255,7 @@ compressBtn.addEventListener('click', async () => {
         }
     } catch (error) {
         console.error('Error during compression:', error);
-        alert('Có lỗi xảy ra khi nén ảnh. Vui lòng thử lại.');
+        alert(t.error);
     } finally {
         compressBtn.disabled = false;
         compressBtn.innerHTML = '<i class="bi bi-compress"></i> Nén Ảnh';
@@ -525,23 +600,31 @@ document.querySelectorAll('[data-lang]').forEach(element => {
 
 function updateLanguage(lang) {
     const t = translations[lang];
+    document.documentElement.lang = lang;
     
-    // Update main content
+    // Update main elements
     document.querySelector('h1').textContent = t.title;
-    document.querySelector('.subtitle').textContent = t.subtitle;
+    document.querySelector('.subtitle').textContent = t.description;
+    
+    // Update upload area
     document.querySelector('#dropZone h4').textContent = t.dropText;
     document.querySelector('#dropZone p').textContent = t.orText;
-    document.querySelector('#dropZone button').innerHTML = `<i class="bi bi-folder"></i> ${t.chooseButton}`;
+    document.querySelector('#dropZone button').innerHTML = `<i class="bi bi-folder"></i> ${t.selectImages}`;
     
     // Update compression options
     document.querySelector('.compression-options h5').textContent = t.defaultQuality;
     document.querySelectorAll('.preset-buttons button')[0].textContent = t.highQuality;
     document.querySelectorAll('.preset-buttons button')[1].textContent = t.balanced;
     document.querySelectorAll('.preset-buttons button')[2].textContent = t.smallSize;
+    document.querySelector('.compression-options label.form-label').textContent = t.qualityLabel;
     
     // Update buttons
-    compressBtn.innerHTML = `<i class="bi bi-compress"></i> ${t.compressButton}`;
-    downloadBtn.innerHTML = `<i class="bi bi-download"></i> ${t.downloadButton}`;
+    document.querySelector('#compressBtn').innerHTML = `<i class="bi bi-compress"></i> ${t.compress}`;
+    document.querySelector('#downloadBtn').innerHTML = `<i class="bi bi-download"></i> ${t.downloadAll}`;
+    document.querySelector('#clearHistory').textContent = t.clearHistory;
+    
+    // Update preview section
+    document.querySelector('#previewArea h5').textContent = t.previewSection;
     
     // Update language selector
     document.querySelector('#languageDropdown').innerHTML = `<i class="bi bi-globe"></i> ${lang.toUpperCase()}`;
@@ -550,34 +633,28 @@ function updateLanguage(lang) {
     document.querySelectorAll('[data-lang]').forEach(el => {
         el.classList.toggle('active', el.dataset.lang === lang);
     });
-    
-    // Refresh previews if they exist
-    if (originalImages.length > 0) {
-        updateAllPreviews();
-    }
+
+    // Update existing previews if any
+    updateExistingPreviews(t);
 }
 
-function updateAllPreviews() {
-    const containers = imagePreview.children;
-    for (let i = 0; i < containers.length; i++) {
-        const container = containers[i];
-        const previewInfo = container.querySelector('.preview-info');
-        if (previewInfo) {
-            const sizeTexts = previewInfo.querySelectorAll('div');
-            if (sizeTexts[1]) { // Original size text
-                sizeTexts[1].textContent = sizeTexts[1].textContent.replace(
-                    /^(Kích thước gốc|Original size)/,
-                    translations[currentLang].originalSize
-                );
-            }
-            if (sizeTexts[2]) { // Compressed size text
-                sizeTexts[2].textContent = sizeTexts[2].textContent.replace(
-                    /^(Kích thước sau nén|Compressed size)/,
-                    translations[currentLang].compressedSize
-                );
-            }
+// Add function to update existing previews
+function updateExistingPreviews(translations) {
+    document.querySelectorAll('.preview-info').forEach(info => {
+        const sizeTexts = info.querySelectorAll('div');
+        if (sizeTexts[1]) {
+            sizeTexts[1].textContent = sizeTexts[1].textContent.replace(
+                /^(Kích thước gốc|Original size):/,
+                `${translations.originalSize}:`
+            );
         }
-    }
+        if (sizeTexts[2]) {
+            sizeTexts[2].textContent = sizeTexts[2].textContent.replace(
+                /^(Kích thước sau nén|Compressed size):/,
+                `${translations.compressedSize}:`
+            );
+        }
+    });
 }
 
 // Initialize language
