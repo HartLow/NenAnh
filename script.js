@@ -508,11 +508,19 @@ document.addEventListener('keydown', (e) => {
 
 downloadBtn.addEventListener('click', async () => {
     const images = imagePreview.getElementsByTagName('img');
+    const containers = imagePreview.children;
+    
     for (let i = 0; i < images.length; i++) {
         const response = await fetch(images[i].src);
         const blob = await response.blob();
         const link = document.createElement('a');
-        link.download = `compressed_image_${i + 1}.jpg`;
+        
+        // Get original filename from preview container
+        const fileName = containers[i].querySelector('.preview-info div:first-child').textContent;
+        // Add 'danen' suffix before file extension
+        const newFileName = fileName.replace(/(\.[^.]+)$/, '_danen$1');
+        
+        link.download = newFileName;
         link.href = URL.createObjectURL(blob);
         link.click();
         URL.revokeObjectURL(link.href);
